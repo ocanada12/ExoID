@@ -63,9 +63,16 @@ class AppController(QObject):
         if self.view is None:
             return
 
-        pixel_sum = self.analyzer.calculate_sum(frame)
+        # 새 분석 함수 사용 (ROI + 수면 레벨)
+        if hasattr(self.analyzer, "analyze"):
+            pixel_sum, roi_rect, water_y = self.analyzer.analyze(frame)
+        else:
+            # 옛 analyze 미구현 Analyzer를 위한 fallback
+            pixel_sum = self.analyzer.calculate_sum(frame)
+            roi_rect, water_y = None, None
+
         self.view.update_sum_label(pixel_sum)
-        self.view.update_video_label(frame)
+        self.view.update_video_label(frame, roi_rect, water_y)
 
     def on_camera_finished(self):
         """카메라 쓰레드 종료 후 호출."""

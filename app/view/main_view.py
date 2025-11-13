@@ -28,23 +28,35 @@ class MainWindow(QMainWindow):
     def update_sum_label(self, value: int):
         self.sumLabel.setText(str(value))
 
-    def update_video_label(self, frame):
+    def update_video_label(self, frame, roi_rect=None, water_y=None):
         """
         frame: numpy ndarray (BGR)
+        roi_rect: (x, y, w, h) 또는 None
+        water_y: int 또는 None (프레임 전체 기준 y좌표)
         """
         if frame is None:
             return
 
-        frame_bgr = np.asarray(frame)
-        if frame_bgr.ndim != 3:
-            return
+        disp = frame.copy()
 
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+        # --- ROI 노란 박스 ---
+        if roi_rect is not None:
+            x, y, w, h = roi_rect
+            # 노란색 (BGR: 0,255,255)
+            cv2.rectangle(disp, (x, y), (x + w, y + h), (0, 255, 255), 2)
+
+            # --- 수면 레벨 초록 선 (ROI 안에서만 표시) ---
+            if water_y is not None:
+                y_line = int(water_y)
+                y_line = max(y, min(y + h - 1, y_line))
+                # 초록색 (BGR: 0,255,0)
+                cv2.line(disp, (x, y_line), (x + w, y_line), (0, 255, 0), 2)
+
+        frame_rgb = cv2.cvtColor(disp, cv2.COLOR_BGR2RGB)
         h, w, ch = frame_rgb.shape
         bytes_per_line = ch * w
         q_img = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
         pixmap = QPixmap.fromImage(q_img)
-        # 라벨 크기에 맞게 스케일링 (원하면 생략 가능)
         pixmap = pixmap.scaled(self.videoLabel.width(), self.videoLabel.height())
         self.videoLabel.setPixmap(pixmap)

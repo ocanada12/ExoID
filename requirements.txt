@@ -3,3 +3,4 @@ opencv-python
 pytest
 pytest-cov
 pytest-qt
+pytest-html

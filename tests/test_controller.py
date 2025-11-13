@@ -61,13 +61,17 @@ class DummyView:
     def __init__(self):
         self.sum_values = []
         self.video_frames = []
+        self.rois = []
+        self.water_levels = []
+
 
     def update_sum_label(self, value):
         self.sum_values.append(value)
 
-    def update_video_label(self, frame):
+    def update_video_label(self, frame, roi_rect=None, water_y=None):
         self.video_frames.append(frame)
-
+        self.rois.append(roi_rect)
+        self.water_levels.append(water_y)
 
 def test_controller_start_stop():
     camera_model = DummyCameraModel()
