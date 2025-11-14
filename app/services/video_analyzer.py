@@ -53,7 +53,6 @@ class VideoAnalyzer:
         pixel_sum = int(np.sum(gray))
 
         # --- 중앙 100x100 ROI 계산 ---
-
         c = self.config
 
         roi_w = min(c.roi_width, w)

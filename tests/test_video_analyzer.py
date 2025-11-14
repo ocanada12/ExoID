@@ -1,17 +1,18 @@
 # tests/test_video_analyzer.py
 import numpy as np
 from app.services.video_analyzer import VideoAnalyzer
+from app.config import ProtocolConfig
 
 
 def test_calculate_sum_gray():
-    analyzer = VideoAnalyzer()
+    analyzer = VideoAnalyzer(ProtocolConfig())
     frame = np.ones((10, 10), dtype=np.uint8) * 10
     result = analyzer.calculate_sum(frame)
     assert result == 10 * 100  # 10x10 픽셀, 값 10
 
 
 def test_calculate_sum_color():
-    analyzer = VideoAnalyzer()
+    analyzer = VideoAnalyzer(ProtocolConfig())
     # BGR 이미지 (모두 100,100,100)
     frame = np.ones((5, 5, 3), dtype=np.uint8) * 100
     result = analyzer.calculate_sum(frame)
@@ -20,13 +21,13 @@ def test_calculate_sum_color():
 
 
 def test_calculate_sum_none():
-    analyzer = VideoAnalyzer()
+    analyzer = VideoAnalyzer(ProtocolConfig())
     result = analyzer.calculate_sum(None)
     assert result == 0
 
 
 def test_analyze_returns_roi_and_waterlevel():
-    analyzer = VideoAnalyzer()
+    analyzer = VideoAnalyzer(ProtocolConfig())
 
     # 200x200 BGR 이미지, 전부 10으로 채우고
     frame = np.ones((200, 200, 3), dtype=np.uint8) * 10

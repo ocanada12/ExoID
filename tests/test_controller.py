@@ -72,6 +72,7 @@ class DummyView:
         self.rois = []
         self.water_levels = []
         self.progress_values = []
+        self.status_values = []
 
     def update_sum_label(self, value):
         self.sum_values.append(value)
@@ -84,6 +85,8 @@ class DummyView:
     def update_progress(self, value):
         self.progress_values.append(value)
 
+    def update_status_label(self, text):
+        self.status_values.append(text)
 
 def make_controller_with_dummy(config: ProtocolConfig | None = None):
     camera_model = DummyCameraModel()
@@ -107,22 +110,27 @@ def make_controller_with_dummy(config: ProtocolConfig | None = None):
 def test_controller_start_stop():
     controller, view, motor = make_controller_with_dummy()
 
-    # start
     controller.handle_start()
+
+    # start
     assert motor.commands == ["start"]
     assert isinstance(controller.camera_thread, DummyThread)
     assert controller.camera_thread.started is True
 
-    # stop
     controller.handle_stop()
+
+    # stop
     assert motor.commands == ["start", "stop"]
     assert controller.camera_thread is None
 
+    # statusLabel 업데이트 여부 검증
+    assert view.status_values[-1] == "정지"
 
 def test_controller_on_frame_ready_updates_view():
     controller, view, motor = make_controller_with_dummy()
 
     fake_frame = "dummy_frame"
+
     controller.on_frame_ready(fake_frame)
 
     # Analyzer가 호출되었는지
