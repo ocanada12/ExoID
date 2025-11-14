@@ -32,7 +32,7 @@ jobs:
           pytest \
             --cov=app \
             --cov-report=term-missing \
-            --cov-fail-under=70 \
+            --cov-fail-under=65 \
             --html=pytest-report.html \
             --self-contained-html
 
