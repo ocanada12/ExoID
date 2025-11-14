@@ -99,7 +99,7 @@ class AppController(QObject):
         progress = self.calculate_progress(water_y)
         self.view.update_progress(progress)
 
-        self.view.update_sum_label(water_y)
+        self.view.update_sum_label(pixel_sum)
         self.view.update_video_label(frame, roi_rect, water_y)
         self._update_waterlevel_logic(water_y)
 

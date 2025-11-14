@@ -1,5 +1,6 @@
 # tests/test_controller.py
 from app.controller.app_controller import AppController
+from app.config import ProtocolConfig
 
 
 class DummyMotor:
@@ -12,15 +13,19 @@ class DummyMotor:
     def move_stop(self):
         self.commands.append("stop")
 
+    def move_after_low_level(self):
+        self.commands.append("move_after_low_level")
 
 class DummyCameraModel:
     def __init__(self):
         self.open_called = False
+        self.read_called = 0
 
     def open(self):
         self.open_called = True
 
     def read(self):
+        self.read_called += 1
         return None  # 실제로는 쓰레드에서만 호출됨
 
     def release(self):
@@ -52,9 +57,12 @@ class DummyAnalyzer:
     def __init__(self):
         self.last_frame = None
 
-    def calculate_sum(self, frame):
+    def analyze(self, frame):
         self.last_frame = frame
-        return 123  # 고정된 값 리턴
+        pixel_sum = 123
+        roi_rect = (10, 20, 30, 40)
+        water_y = 150  # config 기준으로 1단계 범위 안의 값
+        return pixel_sum, roi_rect, water_y
 
 
 class DummyView:
@@ -63,7 +71,7 @@ class DummyView:
         self.video_frames = []
         self.rois = []
         self.water_levels = []
-
+        self.progress_values = []
 
     def update_sum_label(self, value):
         self.sum_values.append(value)
@@ -73,20 +81,31 @@ class DummyView:
         self.rois.append(roi_rect)
         self.water_levels.append(water_y)
 
-def test_controller_start_stop():
+    def update_progress(self, value):
+        self.progress_values.append(value)
+
+
+def make_controller_with_dummy(config: ProtocolConfig | None = None):
     camera_model = DummyCameraModel()
     motor = DummyMotor()
     analyzer = DummyAnalyzer()
+    cfg = config or ProtocolConfig()
 
     controller = AppController(
         camera_model=camera_model,
         motor_model=motor,
         analyzer=analyzer,
         camera_thread_cls=DummyThread,
+        protocol_config=cfg,
     )
-
     view = DummyView()
     controller.set_view(view)
+    return controller, view, motor
+
+
+
+def test_controller_start_stop():
+    controller, view, motor = make_controller_with_dummy()
 
     # start
     controller.handle_start()
@@ -101,21 +120,25 @@ def test_controller_start_stop():
 
 
 def test_controller_on_frame_ready_updates_view():
-    camera_model = DummyCameraModel()
-    motor = DummyMotor()
-    analyzer = DummyAnalyzer()
-    controller = AppController(
-        camera_model=camera_model,
-        motor_model=motor,
-        analyzer=analyzer,
-        camera_thread_cls=DummyThread,
-    )
-    view = DummyView()
-    controller.set_view(view)
+    controller, view, motor = make_controller_with_dummy()
 
     fake_frame = "dummy_frame"
     controller.on_frame_ready(fake_frame)
 
-    assert analyzer.last_frame == fake_frame
+    # Analyzer가 호출되었는지
+    assert controller.analyzer.last_frame == fake_frame
+
+    # View 쪽으로 값이 제대로 전달되었는지
     assert view.sum_values == [123]
     assert view.video_frames == [fake_frame]
+    assert view.rois == [(10, 20, 30, 40)]
+    assert view.water_levels == [150]
+
+    # ProgressBar 값도 1회 업데이트 되었는지
+    assert len(view.progress_values) == 1
+    progress = view.progress_values[0]
+    assert 0 <= progress <= 100
+
+    # waterlevel 자동 로직은 한 번 호출로는 10초가 안 지났으므로
+    # 모터의 move_after_low_level은 호출되지 않아야 한다
+    assert "move_after_low_level" not in motor.commands
