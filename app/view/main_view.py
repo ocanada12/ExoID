@@ -31,6 +31,9 @@ class MainWindow(QMainWindow):
     def update_progress(self, value):
         self.progressBar.setValue(int(value))
 
+    def update_status_label(self, text: str):
+        self.statusLabel.setText(text)
+
     def update_video_label(self, frame, roi_rect=None, water_y=None):
         """
         frame: numpy ndarray (BGR)

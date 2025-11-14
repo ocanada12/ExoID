@@ -24,7 +24,7 @@ class AppController(QObject):
         super().__init__(parent)
         self.camera_model = camera_model
         self.motor_model = motor_model
-        self.analyzer = analyzer or VideoAnalyzer()
+        self.analyzer = analyzer or VideoAnalyzer(protocol_config)
         self.camera_thread_cls = camera_thread_cls
 
         self.config = protocol_config or ProtocolConfig()
@@ -68,6 +68,8 @@ class AppController(QObject):
         if hasattr(self.camera_thread, "start"):
             self.camera_thread.start()
 
+        self.view.update_status_label("1단계")
+
     def handle_stop(self):
         """Stop 버튼 눌렀을 때: 스트리밍 종료 + 모터 이동."""
         self.motor_model.move_stop()
@@ -78,6 +80,9 @@ class AppController(QObject):
             if hasattr(self.camera_thread, "wait"):
                 self.camera_thread.wait()
             self.camera_thread = None
+
+        if self.view:
+            self.view.update_status_label("정지")
 
         self._reset_waterlevel_logic()
 
@@ -133,6 +138,10 @@ class AppController(QObject):
                         # 다음 단계로 전환
                         self._phase = 1
                         self._phase2_start_time = None
+
+                        if self.view:
+                            self.view.update_status_label("2단계")
+
             else:
                 # 조건 깨지면 타이머 리셋
                 self._phase1_start_time = None

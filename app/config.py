@@ -19,6 +19,12 @@ class ProtocolConfig:
     stop_threshold: int = 300      # 10초 동안 이 값 이하 → Stop
     stop_duration_sec: float = 10  # 위 조건 유지 시간 (초)
 
+    # ROI 설정 추가
+    roi_width: int = 100
+    roi_height: int = 100
+    roi_offset_x: int = 0
+    roi_offset_y: int = 0
+
     @classmethod
     def from_json(cls, path: Path):
 

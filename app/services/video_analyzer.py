@@ -9,6 +9,10 @@ class VideoAnalyzer:
     여기서 ROI 분석, threshold, 수면 레벨 등 다 확장 가능.
     지금은 '픽셀 총합'만 계산.
     """
+    def __init__(self, protocol_config=None):
+        self.config = protocol_config
+
+
     def calculate_sum(self, frame) -> int:
         """
         frame: numpy ndarray (BGR or Gray)
@@ -49,19 +53,21 @@ class VideoAnalyzer:
         pixel_sum = int(np.sum(gray))
 
         # --- 중앙 100x100 ROI 계산 ---
-        roi_size = 100
-        roi_w = min(roi_size, w)
-        roi_h = min(roi_size, h)
 
-        cx = w // 2
-        cy = h // 2
+        c = self.config
+
+        roi_w = min(c.roi_width, w)
+        roi_h = min(c.roi_height, h)
+
+        cx = w // 2 + c.roi_offset_x
+        cy = h // 2 + c.roi_offset_y
 
         x0 = cx - roi_w // 2
         y0 = cy - roi_h // 2
 
         # 프레임 경계 안으로 보정
-        x0 = max(0, min(x0, w - roi_w))
-        y0 = max(0, min(y0, h - roi_h))
+        x0 = max(0, min(cx - roi_w // 2, w - roi_w))
+        y0 = max(0, min(cy - roi_h // 2, h - roi_h))
 
         roi = gray[y0:y0 + roi_h, x0:x0 + roi_w]
 
