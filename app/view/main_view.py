@@ -28,6 +28,9 @@ class MainWindow(QMainWindow):
     def update_sum_label(self, value: int):
         self.sumLabel.setText(str(value))
 
+    def update_progress(self, value):
+        self.progressBar.setValue(int(value))
+
     def update_video_label(self, frame, roi_rect=None, water_y=None):
         """
         frame: numpy ndarray (BGR)

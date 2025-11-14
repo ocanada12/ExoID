@@ -17,3 +17,11 @@ class MotorModel:
     def move_stop(self):
         # TODO: 실제 모터 정지 코드
         self.last_command = "stop"
+
+    def move_after_low_level(self):
+        """
+        waterlevel이 10초 동안 200 이하일 때 실행할 모터 동작.
+        여기에 실제 '이동' 동작(예: 특정 위치로 이동)을 넣으면 됨.
+        """
+        # TODO: 실제 모터 이동 코드 (예: "MOVE_STAGE1" 같은 명령)
+        self.last_command = "move_after_low_level"

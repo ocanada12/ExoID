@@ -75,3 +75,4 @@ class VideoAnalyzer:
 
         roi_rect = (x0, y0, roi_w, roi_h)
         return pixel_sum, roi_rect, water_y
+
